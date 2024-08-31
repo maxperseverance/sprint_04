@@ -3,19 +3,19 @@ import Foundation
 final class StatisticService: StatisticServiceProtocol {
     private let storage: UserDefaults = .standard
     
-    var correctAnswers: Int {
-        get {
-            UserDefaults.standard.integer(forKey: "correctAnswers")
-        }
-        set {
-            UserDefaults.standard.set(newValue, forKey: "correctAnswers")
-        }
-    }
-    
     private enum Keys: String {
         case correct
         case bestGame
         case gamesCount
+    }
+    
+    var correctAnswers: Int {
+        get {
+            storage.integer(forKey: "correctAnswers")
+        }
+        set {
+            storage.set(newValue, forKey: "correctAnswers")
+        }
     }
     
     var gamesCount: Int {
@@ -42,11 +42,7 @@ final class StatisticService: StatisticServiceProtocol {
     }
     
     var totalAccuracy: Double {
-        if gamesCount != 0 {
-            Double(correctAnswers) / Double((10 * gamesCount)) * 100
-        } else {
-            0.0
-        }
+        (gamesCount != 0) ? Double(correctAnswers) / Double((10 * gamesCount)) * 100 : 0.0
     }
     
     func store(correct count: Int, total amount: Int) {
