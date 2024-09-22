@@ -15,10 +15,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private var noButton: UIButton!
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
     
+//    private let questionsAmount: Int = 10
+    private let presenter = MovieQuizPresenter()
     private var correctAnswers = 0
-    
-    private var currentQuestionIndex = 0
-    private let questionsAmount: Int = 10
+//    private var currentQuestionIndex = 0
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private var alertPresenter: AlertPresenter?
@@ -43,7 +43,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else { return }
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         show(quiz: viewModel)
         }
     
@@ -82,7 +82,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
             
-            self.currentQuestionIndex = 0
+            self.presenter.resetQuestionIndex()
             self.correctAnswers = 0
             
             self.questionFactory?.requestNextQuestion()
@@ -114,13 +114,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
     }
     
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let questionStep: QuizStepViewModel = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return questionStep
-    }
+//    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+//        let questionStep: QuizStepViewModel = QuizStepViewModel(
+//            image: UIImage(data: model.image) ?? UIImage(),
+//            question: model.text,
+//            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
+//        return questionStep
+//    }
     
     private func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
@@ -130,8 +130,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private func showNextQuestionOrResults() {
         imageView.layer.borderWidth = 0
-        statisticService.store(correct: correctAnswers, total: questionsAmount)
-        if currentQuestionIndex == questionsAmount - 1 {
+        statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
+        if self.presenter.isLastQuestion() {
             statisticService.gamesCount += 1
             statisticService.correctAnswers += correctAnswers
             let gamesPlayed: Int = statisticService.gamesCount
@@ -143,27 +143,27 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             let formattedDate = dateFormatter.string(from: statisticService.bestGame.date)
             
             let message = """
-                            Ваш результат: \(correctAnswers)/\(questionsAmount)
+                            Ваш результат: \(correctAnswers)/\(presenter.questionsAmount)
                             Количество сыгранных квизов: \(gamesPlayed)
                             Рекорд: \(bestScore)/10 (\(formattedDate))
                             Средняя точность: \(String(format: "%.2f", totalAccuracy))%
                             """
             
             let alertModel = AlertModel(
-                            title: "Этот раунд окончен",
+                            title: "Этот раунд окончен!",
                             message: message,
                             buttonText: "Сыграть ещё раз"
                 ) { [weak self] in
                     guard let self = self else { return }
             
-            self.currentQuestionIndex = 0
+            self.presenter.resetQuestionIndex()
             self.correctAnswers = 0
             self.questionFactory?.requestNextQuestion()
                 }
                 
             alertPresenter?.showAlert(model: alertModel)
         } else {
-            currentQuestionIndex += 1
+            self.presenter.switchToNextQuestion()
             self.questionFactory?.requestNextQuestion()
         }
     }
