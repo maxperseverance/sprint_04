@@ -23,8 +23,7 @@ final class StatisticService: StatisticServiceProtocol {
             storage.integer(forKey: Keys.gamesCount.rawValue)
         }
         set {
-            storage.set(newValue, forKey: Keys.gamesCount.rawValue)
-        }
+            storage.set(newValue, forKey: Keys.gamesCount.rawValue)        }
     }
     
     var bestGame: GameResult {

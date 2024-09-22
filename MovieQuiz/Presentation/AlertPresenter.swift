@@ -17,6 +17,12 @@ final class AlertPresenter {
             style: .default)
         { _ in model.completion() }
         
+        if alert.title == "Этот раунд окончен!" {
+            alert.view.accessibilityIdentifier = "GameResults"
+        } else {
+            alert.view.accessibilityIdentifier = "Error"
+        }
+        
         alert.addAction(action)
         viewController?.present(alert, animated: true, completion: nil)
     }
